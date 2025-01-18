@@ -13,11 +13,13 @@
 #include <iostream>
 #include <vector>
 
+
+
 class Span
 {
 private:
     std::vector<int> _numbers;
-    size_t _size;
+    unsigned int N;
 
 public:
     Span();
@@ -26,18 +28,20 @@ public:
     ~Span();
 
     Span(unsigned int N);
-    void addNumber(unsigned int num);
-    unsigned int shortestSpan();
-    unsigned int longestSpan();
-    template <typename iterator>
-    void addRange(iterator begin, iterator end);
+    void addNumber(int num);
+    int shortestSpan();
+    int longestSpan();
+    template <typename Iterator>
+    void addNumber(Iterator start, Iterator end);
+    void addNumbersIndividually();
 };
 
-template <typename iterator>
-void Span::addRange(iterator start, iterator end)
+template <typename Iterator>
+void Span::addNumber(Iterator start, Iterator end)
 {
     unsigned int range = std::distance(start, end);
-    if ((_numbers.size() + range) > _size)
+    if ((_numbers.size() + range) > N)
         throw std::length_error("The span is full");
     _numbers.insert(_numbers.end(), start, end);
 }
+

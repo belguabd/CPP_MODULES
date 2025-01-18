@@ -12,16 +12,7 @@
 
 #ifndef EASYFIND_HPP
 #define EASYFIND_HPP
-
 #include <iostream>
-
-class NotFoundException : public std::exception
-{
-    const char *what() const throw()
-    {
-        return ("Value not found in the container");
-    }
-};
 
 template <typename T>
 typename T::iterator easyfind(T &arge, int to_find)
@@ -31,6 +22,7 @@ typename T::iterator easyfind(T &arge, int to_find)
     if (it != arge.end())
         return it;
     else
-        throw NotFoundException();
+        throw std::out_of_range("Element not found");
 }
 #endif
+

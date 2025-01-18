@@ -25,10 +25,8 @@ all :$(NAME)
 
 $(NAME):$(OBJ)	
 	$(FLAGS)  $(OBJ) -o $(NAME)
-%.o:%.cpp 
+%.o:%.cpp MutantStack.hpp
 	$(FLAGS) -c $< -o $@
-
-
 clean:
 	$(RM) $(OBJ)
 
@@ -36,4 +34,5 @@ fclean: clean
 	$(RM) $(NAME)
 
 re:fclean  all
-	
+
+

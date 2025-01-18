@@ -27,8 +27,6 @@ $(NAME):$(OBJ)
 	$(FLAGS)  $(OBJ) -o $(NAME)
 %.o:%.cpp  Easyfind.hpp
 	$(FLAGS) -c $< -o $@
-
-
 clean:
 	$(RM) $(OBJ)
 

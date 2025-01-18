@@ -13,17 +13,17 @@
 #include "Span.hpp"
 
 /*
-** ------------------------------- CONSTRUCTOR -------------------------------- 
+** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Span::Span() : _size(0) {};
-Span::Span(const Span &src) : _numbers(src._numbers), _size(src._size) {};
+Span::Span() : N(0) {};
+Span::Span(const Span &src) : _numbers(src._numbers), N(src.N) {};
 Span &Span::operator=(const Span &src)
 {
     if (this != &src)
     {
         _numbers = src._numbers;
-        _size = src._size;
+        N = src.N;
     }
     return *this;
 };
@@ -33,42 +33,46 @@ Span::~Span() {};
 ** --------------------------------- METHODS ----------------------------------
 */
 
-Span::Span(unsigned int N) : _size(N) {};
+Span::Span(unsigned int N) : N(N) {};
 
-void Span::addNumber(unsigned int num)
+void Span::addNumber(int num)
 {
 
-    if (_numbers.size() >= _size)
+    if (_numbers.size() >= N)
         throw std::length_error("The span is full");
     _numbers.push_back(num);
 };
 
-unsigned int Span::shortestSpan()
+int Span::shortestSpan()
 {
 
-    if (_size < 2)
+    if (N < 2)
         throw std::length_error("The container must have at least two elements.");
-    sort(_numbers.begin(), _numbers.end());
+    std::sort(_numbers.begin(), _numbers.end());
+
     std::vector<int>::iterator it = _numbers.begin();
-    unsigned int shortest = *(it + 1) - *it;
+    int shortest = *(it + 1) - *it;
     it++;
     for (; it != _numbers.end() - 1; ++it)
     {
-        if (shortest > static_cast<unsigned int>(*(it + 1) - (*it)))
-            shortest = static_cast<unsigned int>(*(it + 1) - (*it));
+        if (shortest > (*(it + 1) - (*it)))
+            shortest = (*(it + 1) - (*it));
     }
     return (shortest);
 }
 
-unsigned int Span::longestSpan()
+int Span::longestSpan()
 {
 
     if (_numbers.size() < 2)
         throw std::length_error("The container must have at least two elements.");
-    sort(_numbers.begin(), _numbers.end());
-
-    unsigned int longest = _numbers.back() - _numbers.front();
-
+    std::sort(_numbers.begin(), _numbers.end());
+    int longest = _numbers.back() - _numbers.front();
     return (longest);
 }
 
+void Span::addNumbersIndividually()
+{
+    for (size_t i = 0; i < 10000; i++)
+        addNumber(i + 5);
+}

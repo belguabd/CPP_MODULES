@@ -14,7 +14,7 @@
 
 int main()
 {
-    std::cout << "================" << std::endl;
+    std::cout << "==================== Test 1 ====================" << std::endl;
     MutantStack<int> mstack;
     mstack.push(5);
     mstack.push(17);
@@ -36,27 +36,13 @@ int main()
         ++it;
     }
     std::stack<int> s(mstack);
-    std::cout << "================" << std::endl;
-    std::list<int> mlist;
-    mlist.push_back(5);
-    mlist.push_back(17);
-    std::cout << mlist.back() << std::endl;
-    mlist.pop_back();
-    std::cout << mlist.size() << std::endl;
-    mlist.push_back(3);
-    mlist.push_back(5);
-    mlist.push_back(737);
-    //[...]
-    mlist.push_back(0);
-    std::list<int>::iterator it_list = mlist.begin();
-    std::list<int>::iterator ite_list = mlist.end();
-    ++it_list;
-    --it_list;
-    while (it_list != ite_list)
-    {
-        std::cout << *it_list << std::endl;
-        ++it_list;
-    }
-    std::cout << "================" << std::endl;
-    return (0);
+    std::cout << "==================== Test 2 ====================" << std::endl;
+    MutantStack<int, std::vector<int> > mstackTest;
+    mstackTest.push(5);
+    mstackTest.push(17);
+    std::cout << mstackTest.top() << std::endl;
+    std::cout << "==================== Test 3 ====================" << std::endl;
+    std::stack<int, std::vector<int> > stackTest(mstackTest);
+    std::cout << stackTest.top() << std::endl;
+    return 0;
 }

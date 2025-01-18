@@ -13,6 +13,7 @@
 #include "Easyfind.hpp"
 
 #include <vector>
+#include <map>
 
 int main()
 {
@@ -25,10 +26,12 @@ int main()
         arr.push_back(13);
         std::cout << "Found: " << *easyfind(arr, toFind) << std::endl;
         toFind = 14;
-        std::cout << "Found: " << *easyfind(arr, toFind) << std::endl;
+        std::vector<int>::iterator it = easyfind(arr, toFind);
+        std::cout << "Found: " << *it << std::endl;
     }
     catch (const std::exception &e)
     {
+
         std::cout << "Error: " << e.what() << std::endl;
     }
 }

@@ -12,47 +12,26 @@
 
 #include <iostream>
 #include <stack>
-#include <list>
+#include <vector>
 
-template <typename T>
-
-class MutantStack : public std::stack<T>
+template <typename T, typename Container = std::deque<T> >
+class MutantStack : public std::stack<T, Container>
 {
 public:
-    MutantStack();
-    MutantStack(const MutantStack &src);
-    MutantStack &operator=(const MutantStack &src);
-    ~MutantStack();
-
-    typedef typename std::stack<T>::container_type::iterator iterator;
-    iterator  begin() { return std::stack<T>::c.begin(); }
-    iterator end() { return std::stack<T>::c.end(); }
-
-    typedef typename std::stack<T>::container_type::const_iterator const_iterator;
-    const_iterator begin() const { return std::stack<T>::c.begin(); }
-    const_iterator end() const { return std::stack<T>::c.end(); }
-};
-
-/*
-** ------------------------------- CONSTRUCTOR --------------------------------
-*/
-
-template <typename T>
-MutantStack<T>::MutantStack() : std::stack<T>() {}
-
-template <typename T>
-MutantStack<T>::MutantStack(const MutantStack &src) : std::stack<T>(src) {}
-
-template <typename T>
-MutantStack<T> &MutantStack<T>::operator=(const MutantStack &src)
-{
-    if (this != &src)
+    MutantStack() : std::stack<T, Container>() {}
+    MutantStack(const MutantStack &src) : std::stack<T, Container>(src) {};
+    MutantStack &operator=(const MutantStack &src)
     {
-        std::stack<T>::operator=(src);
+        if (this != &src)
+            std::stack<T, Container>::operator=(src);
+        return *this;
     }
-    return *this;
-}
+    ~MutantStack() {}
+    typedef typename Container::iterator iterator;
+    iterator begin() { return std::stack<T, Container>::c.begin(); }
+    iterator end() { return std::stack<T, Container>::c.end(); }
 
-template <typename T>
-MutantStack<T>::~MutantStack() {}
-
+    typedef typename Container::const_iterator const_iterator;
+    const_iterator begin() const { return std::stack<T, Container>::c.begin(); }
+    const_iterator end() const { return std::stack<T, Container>::c.end(); }
+};

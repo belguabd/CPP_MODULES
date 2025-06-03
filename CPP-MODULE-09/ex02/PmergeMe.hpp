@@ -1,32 +1,33 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   PmergeMe.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: belguabd <belguabd@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/24 15:22:37 by belguabd          #+#    #+#             */
-/*   Updated: 2024/11/25 19:18:10 by belguabd         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+#ifndef PMERGEME_HPP
+#define PMERGEME_HPP
 
 #include <iostream>
 #include <vector>
-#include <utility>
+#include <deque>
+#include <algorithm> 
+#include <sys/time.h>
+#include <iomanip>
+#include <sstream>
+#include <limits.h>
+
 
 class PmergeMe
 {
-public:
-    void parseInput(const std::string &data);
-    void main();
-private:
-    std::vector<std::pair<int, int> > data;
-    std::vector<int> inputData;
-    std::vector<int> mainChian;
-    std::vector<int> pend;
-    void setData();
-    void getGreaterElement();
-    void sortAscending();
-    void binarySearch();
-    static int struggle ;
+    private:
+        std::vector<int>            numbers;
+        std::deque<int>             d_numbers;
+        int                         odd;
+
+    public:
+        void                        main(int argc, char *args[]);
+        void                        parseArgs(char *args[]);
+        std::vector<int>            mergeInsertion(std::vector<int> &_main);
+        std::vector<long double>    getJacobsthalNumbers(size_t n);
+        
+        void                        d_parseArgs(char *args[]);
+        std::deque<int>             mergeInsertion(std::deque<int> &_main);
+        std::deque<long double>     d_getJacobsthalNumbers(size_t n);
 };
+
+#endif

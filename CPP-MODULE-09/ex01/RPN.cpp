@@ -1,95 +1,116 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RPN.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: belguabd <belguabd@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/23 17:21:55 by belguabd          #+#    #+#             */
-/*   Updated: 2024/11/24 15:03:53 by belguabd         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "RPN.hpp"
-#include <stack>
-#include <sstream>
-#include <list>
-using namespace std;
 
-bool RPN::IsOperator(char ch)
+bool isValidExpression(const std::string &str)
 {
-    return (ch != '+' && ch != '-' && ch != '/' && ch != '*');
+    const std::string allowed = "0123456789+-*/";
+    return str.find_first_not_of(allowed) == std::string::npos;
 }
 
-void RPN::parseInput(const std::string &data)
+void printVector(const std::list<std::string> &vec)
 {
-    istringstream split(data);
-    string token;
-
-    while (split >> token)
-        list.push_back(token);
-
-    std::list<std::string>::iterator it = list.begin();
-    for (; it != list.end(); it++)
+    std::cout << "[";
+    std::list<std::string>::const_iterator it = vec.begin();
+    while (it != vec.end())
     {
-
-        if (std::strlen(it->c_str()) > 1)
-            throw std::invalid_argument("Invalid argument!!");
-        else if (!std::isdigit(it->c_str()[0]))
-            if (IsOperator(it->c_str()[0]))
-                throw std::invalid_argument("Error");
+        std::cout << *it;
+        ++it;
+        if (it != vec.end())
+            std::cout << ", ";
     }
+    std::cout << "]\n";
 }
-
-void RPN::RPNCalculator(const std::string &data)
+void RPN::RPNCalculator()
 {
     double push;
     double rpnFirst;
     double rpnSecond;
+    char op;
 
-    std::list<std::string>::iterator it = list.begin();
-    for (; it != list.end(); it++)
+    std::list<std::string>::iterator it = numbers.begin();
+
+    for (; it != numbers.end(); it++)
     {
-
-        if (!IsOperator(it->c_str()[0]))
+        std::string arg = *it;
+        if (std::isdigit(arg[0]))
         {
+            std::stringstream ss(*it);
+            int number;
+            ss >> number;
+            st.push(number);
+        }
+        else
+        {
+            op = arg[0];
             if (st.size() < 2)
-                throw std::invalid_argument("Error");
-            rpnFirst = st.top();
-            st.pop();
+                throw std::invalid_argument("Not enough operands in stack for operation");
             rpnSecond = st.top();
             st.pop();
-            if (it->c_str()[0] == '+')
+            rpnFirst = st.top();
+            st.pop();
+            if (op == '+')
                 push = rpnFirst + rpnSecond;
-            else if (it->c_str()[0] == '*')
+            else if (op == '-')
+                push = rpnFirst - rpnSecond;
+            else if (op == '*')
                 push = rpnFirst * rpnSecond;
-            else if (it->c_str()[0] == '/')
+            else if (op == '/')
             {
-                if (rpnFirst == 0)
+                if (rpnSecond == 0)
                     throw std::invalid_argument("Divided by zero!!");
-                push = rpnSecond / rpnFirst;
+                push = rpnFirst / rpnSecond;
             }
-            else if (it->c_str()[0] == '-')
-                push = rpnSecond - rpnFirst;
+            if (push > INT_MAX || push < INT_MIN)
+                throw std::overflow_error("Overflow error: result out of int range");
             st.push(push);
-            continue;
         }
-        st.push(std::atoi(it->c_str()));
     }
-    if (st.size() > 1)
-        std::invalid_argument("Error");
+    if (st.size() != 1)
+        throw std::invalid_argument("Invalid RPN expression");
     std::cout << st.top() << "\n";
 }
-
-RPN::RPN(const std::string &data)
+void RPN::parseArgs()
 {
-    try
+    std::istringstream ss(rpn);
+    std::string token;
+    while (ss >> token)
     {
-        parseInput(data);
-        RPNCalculator(data);
-    }
-    catch (const std::invalid_argument &e)
-    {
-        std::cerr << e.what() << std::endl;
+        numbers.push_back(token);
+        if (!isValidExpression(token) || token.length() > 1)
+            throw std::runtime_error("Invalid: contains other characters");
     }
 }
+
+void RPN::main(int argc, char *av[])
+{
+    if (argc != 2)
+    {
+        std::cerr << "Usage: " << av[0] << " <RPN expression>\n";
+        return;
+    }
+    try
+    {
+
+        this->rpn = av[1];
+        parseArgs();
+        RPNCalculator();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << "\n";
+    }
+}
+
+RPN::RPN() {}
+RPN::RPN(const RPN &other)
+    : st(other.st), rpn(other.rpn), numbers(other.numbers) {}
+RPN &RPN::operator=(const RPN &other)
+{
+    if (this != &other)
+    {
+        st = other.st;
+        rpn = other.rpn;
+        numbers = other.numbers;
+    }
+    return *this;
+}
+RPN::~RPN() {}

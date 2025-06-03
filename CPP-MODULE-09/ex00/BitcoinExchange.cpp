@@ -1,23 +1,7 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   BitcoinExchange.cpp                                :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: belguabd <belguabd@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/20 16:06:51 by belguabd          #+#    #+#             */
-/*   Updated: 2024/11/23 16:21:17 by belguabd         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "BitcoinExchange.hpp"
-#include <sstream>
 
-#define DATE 10
-#define VALUE 12
-using namespace std;
 
-int BitcoinExchange::ft_atoi(const std::string &string)
+int ft_atoi(const std::string &string)
 {
 
     size_t i = 0;
@@ -34,131 +18,121 @@ int BitcoinExchange::ft_atoi(const std::string &string)
     return (res * sign);
 }
 
-bool isLeapYear(int year)
+void BitcoinExchange::parseInput(const std::string &filename)
 {
-    return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
-}
+    std::ifstream inputFile(filename.c_str());
+    if (!inputFile.is_open())
+        throw std::runtime_error("File not found or cannot be opened.");
 
-bool validateMonths(const string &line)
-{
-    int year = std::atoi(line.substr(0, 4).c_str());
-    int month = std::atoi(line.substr(5, 2).c_str());
-    int day = std::atoi(line.substr(8, 2).c_str());
-
-    if (month == 2 && (day > 29 || (day > 28 && !isLeapYear(year))))
-        return (false);
-    return !((month == 1 && day > 31) ||
-             (month == 3 && day > 31) ||
-             (month == 4 && day > 30) ||
-             (month == 5 && day > 31) ||
-             (month == 6 && day > 30) ||
-             (month == 7 && day > 31) ||
-             (month == 8 && day > 31) ||
-             (month == 9 && day > 30) ||
-             (month == 10 && day > 31) ||
-             (month == 11 && day > 30) ||
-             (month == 12 && day > 31));
-}
-
-bool isValidDateLine(const std::string &line)
-{
-
-    if (line.size() < 13)
-        return (false);
-    long double num;
-    std::string value = line.substr(VALUE);
-    std::stringstream ss(value);
-    ss >> num;
-
-    return (std::isdigit(line[0]) &&
-            std::isdigit(line[1]) &&
-            std::isdigit(line[2]) &&
-            std::isdigit(line[3]) &&
-            line[4] == '-' &&
-            std::isdigit(line[5]) &&
-            std::isdigit(line[6]) &&
-            line[7] == '-' &&
-            std::isdigit(line[8]) &&
-            std::isdigit(line[9]) &&
-            line[10] == ' ' &&
-            line[11] == '|' &&
-            line[12] == ' ' && !ss.fail() && ss.eof());
-}
-bool checkDate(const string &line)
-{
-    int year = std::atoi(line.substr(0, 4).c_str());
-    int month = std::atoi(line.substr(5, 2).c_str());
-    int day = std::atoi(line.substr(8, 2).c_str());
-    return year < 2009 || month > 12 || day > 31;
-}
-void BitcoinExchange::readDataFromFile(const std::string &file)
-{
-    long double num;
-    long double value;
-
-    std::ifstream file_name(file, std::ios::in);
     std::string line;
-    while (getline(file_name, line))
-        parsedData.push_back(line);
-    file_name.close();
-    std::vector<std::string>::iterator it = parsedData.begin();
-    int i = 0;
-    for (; it != (parsedData.end() - 1); it++)
-    {
-        if (!isValidDateLine(*(it + 1)) ||
-            !validateMonths(*(it + 1)) ||
-            checkDate(*(it + 1)))
-        {
-            std::cout
-                << "Error: bad input => " << *(it + 1) << "\n";
-            continue;
-        }
-        else
-        {
+    std::getline(inputFile, line);
+    if (line != "date | value")
+        throw std::runtime_error("Invalid header format. Expected 'date | value'");
 
-            std::string value = *(it + 1);
-            value = value.substr(VALUE);
-            std::stringstream ss(value);
-            ss >> num;
-            if (num < 0)
-            {
-                std::cout
-                    << "Error: not a positive number." << "\n";
-                continue;
-            }
-            else if (num > 1000)
-            {
-
-                std::cout
-                    << "Error: too large a number." << "\n";
-                continue;
-            }
-        }
-
-        dateValueMapIn.clear();
-        string key = *(it + 1);
-        dateValueMapIn[key.substr(0, DATE)] = num;
-        std::map<std::string, double>::iterator it = dateValueMapIn.begin();
-        std::map<std::string, double>::iterator targetDate = dateValueMap.lower_bound(it->first);
-
-        if (it->first.compare(targetDate->first))
-        {
-            if (targetDate != dateValueMap.begin())
-            {
-                --targetDate;
-                std::cout << targetDate->first << " => "
-                          << targetDate->second << " = "
-                          << targetDate->second * it->second << "\n";
-            }
-        }
-        else
-            std::cout << targetDate->first << " => "
-                      << targetDate->second << " = "
-                      << targetDate->second * it->second << "\n";
-    }
+    while (std::getline(inputFile, line))
+        parseLine(line);
 }
 
-bool IsValidCsv(const string &buffer)
+bool checkLineFormat(const std::string &line)
+{
+    return (!std::isdigit(line[0]) ||
+            !std::isdigit(line[1]) ||
+            !std::isdigit(line[2]) ||
+            !std::isdigit(line[3]) ||
+            line[4] != '-' ||
+            !std::isdigit(line[5]) ||
+            !std::isdigit(line[6]) ||
+            line[7] != '-' ||
+            !std::isdigit(line[8]) ||
+            !std::isdigit(line[9]) ||
+            line[10] != ' ' ||
+            line[11] != '|' ||
+            line[12] != ' ');
+}
+
+bool isInvalidDate(int month, int day)
+{
+    return ((month == 1 && day > 31) ||
+            (month == 2 && day > 29) ||
+            (month == 3 && day > 31) ||
+            (month == 4 && day > 30) ||
+            (month == 5 && day > 31) ||
+            (month == 6 && day > 30) ||
+            (month == 7 && day > 31) ||
+            (month == 8 && day > 31) ||
+            (month == 9 && day > 30) ||
+            (month == 10 && day > 31) ||
+            (month == 11 && day > 30) ||
+            (month == 12 && day > 31));
+}
+void BitcoinExchange::parseLine(const std::string &line)
+{
+    int year, month, day;
+    if (line.length() > LENGTH)
+    {
+        std::string value = line.substr(VALUE);
+        std::stringstream ss(value); 
+        ss >> this->num;
+
+        if (checkLineFormat(line) || ss.fail() || !ss.eof())
+        {
+            std::cerr << "Error: bad input => " << line << "\n";
+            return;
+        }
+        year = ft_atoi(line.substr(0, 4));
+        month = ft_atoi(line.substr(5, 2));
+        day = ft_atoi(line.substr(8, 2));
+        if (year < 2009 || month > 12 || day > 31 || !day || !month)
+        {
+            std::cerr << "Error: bad input => " << line << "\n";
+            return;
+        }
+        if (isInvalidDate(month, day))
+        {
+            std::cerr << "Error: bad input => " << line << "\n";
+            return;
+        }
+        if (this->num > 1000)
+        {
+            std::cerr << "Error: too large a number." << "\n";
+            return;
+        }
+        if (this->num < 0)
+        {
+            std::cerr << "Error: not a positive number." << "\n";
+            return;
+        }
+        
+        std::string date = line.substr(0, 10);
+        std::map<std::string, double>::iterator it = dateValueMap.lower_bound(date);
+        if (it == dateValueMap.end())
+        {
+            --it;
+            std::cout << date << " => " << num << " = " << it->second * num << "\n";
+        }
+        else if (it->first != date)
+        {
+            if (it != dateValueMap.begin())
+            {
+                --it;
+                std::cout << date << " => " << num << " = " << it->second * num << "\n";
+            }
+            else
+            {
+                std::cerr << "Error: bad input => " << line << "\n";
+                return;
+            }
+        }
+        else
+        {
+            std::cout << date << " => " << num << " = " << it->second * num << "\n";
+        }
+    }
+    else
+        std::cerr << "Error: bad input => " << line << "\n";
+}
+
+bool IsValidCsv(const std::string &buffer)
 {
     return ((std::isdigit(buffer[0]) &&
              std::isdigit(buffer[1]) &&
@@ -172,15 +146,13 @@ bool IsValidCsv(const string &buffer)
              std::isdigit(buffer[9])));
 }
 
-void BitcoinExchange::setMap(const string &av)
+void BitcoinExchange::setMap(const std::string &av)
 {
     std::ifstream file_name("data.csv");
-    std::ifstream input_file(av);
+    std::ifstream input_file(av.c_str());
     if (!file_name.is_open() || !input_file.is_open())
         throw std::invalid_argument("file doesn't exit");
-
     std::string buffer;
-
     getline(file_name, buffer);
     while (getline(file_name, buffer))
     {
@@ -205,5 +177,41 @@ void BitcoinExchange::setMap(const string &av)
         }
         std::string date = buffer.substr(0, DATE);
         dateValueMap[date] = value;
+
     }
 }
+
+void BitcoinExchange::main(int argc, char **argv)
+{
+    if (argc == 1)
+    {
+        std::cerr << "Usage: " << argv[0] << " <input_file>\n";
+        return;
+    }
+    try
+    {
+        setMap(argv[1]);
+        parseInput(argv[1]);
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+BitcoinExchange::BitcoinExchange() : num(0.0), dateValueMap() {}
+
+BitcoinExchange::BitcoinExchange(const BitcoinExchange &other)
+    : num(other.num), dateValueMap(other.dateValueMap) {}
+
+BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &other)
+{
+    if (this != &other)
+    {
+        num = other.num;
+        dateValueMap = other.dateValueMap;
+    }
+    return *this;
+}
+
+BitcoinExchange::~BitcoinExchange() {}

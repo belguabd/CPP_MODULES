@@ -1,110 +1,303 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   PmergeMe.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: belguabd <belguabd@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/24 15:22:39 by belguabd          #+#    #+#             */
-/*   Updated: 2024/11/25 19:27:39 by belguabd         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "PmergeMe.hpp"
 
-int PmergeMe::struggle = -1;
-
-int _Atoi(const std::string &input)
+void PmergeMe::parseArgs(char *args[])
 {
-    size_t res = 0;
-    for (size_t i = 0; i < input.size(); i++)
+    int nbr;
+    int i;
+
+    i = 1;
+    while (args[i])
     {
-        res = input[i] - '0' + (10 * res);
-        if (res > INT_MAX)
-            throw std::invalid_argument("Invalid argument!!");
+        std::string arg = args[i];
+        std::stringstream ss(arg);
+        ss >> nbr;
+        if (!ss.eof() || ss.fail() || nbr < 0)
+            throw std::runtime_error("Invalid argument");
+        numbers.push_back(nbr);
+        i++;
     }
-    return (res);
 }
 
-void PmergeMe::parseInput(const std::string &data)
+void PmergeMe::d_parseArgs(char *args[])
 {
+    int nbr;
+    int i;
 
-    for (size_t i = 0; i < data.size(); i++)
+    i = 1;
+    while (args[i])
     {
-        if (!std::isdigit(data[i]))
-            throw std::invalid_argument("Invalid argument!!");
+        std::string arg = args[i];
+        std::stringstream ss(arg);
+        ss >> nbr;
+        if (!ss.eof() || ss.fail() || nbr < 0)
+            throw std::runtime_error("Invalid argument");
+        d_numbers.push_back(nbr);
+        i++;
     }
-    inputData.push_back(_Atoi(data));
 }
 
-void PmergeMe::setData()
+std::vector<long double> getNumbers(int start, int end)
 {
-    std::vector<int>::iterator it = inputData.begin();
+    std::vector<long double> numbers;
+    while (--end > start)
+        numbers.push_back(end);
+    return numbers;
+}
 
-    for (; it != inputData.end();)
+std::vector<long double> PmergeMe::getJacobsthalNumbers(size_t n)
+{
+    std::vector<long double> jacobSeq;
+
+    if (n == 0)
+        return jacobSeq;
+    /* J(n) = J(n-1) + 2*J(n-2)*/
+    jacobSeq.push_back(0); // J(0)
+    jacobSeq.push_back(1); // J(1)
+
+    for (long double i = 2;; ++i)
     {
-        if ((it + 1) == inputData.end())
+        long double next = jacobSeq[i - 1] + 2 * jacobSeq[i - 2];
+        if (next >= n)
             break;
-        std::pair<int, int> pr = std::make_pair(*it, *(it + 1));
-        data.push_back(pr);
+        jacobSeq.push_back(next);
+    }
+    if (jacobSeq.size() > 2)
+        jacobSeq.erase(jacobSeq.begin(), jacobSeq.begin() + 2);
+
+    return jacobSeq;
+}
+
+void displayVector(std::vector<long double> &vec)
+{
+    for (size_t i = 0; i < vec.size(); ++i)
+        std::cout << vec[i] << (i + 1 < vec.size() ? " " : "\n");
+}
+
+std::vector<int> PmergeMe::mergeInsertion(std::vector<int> &_input)
+{
+    if (_input.size() <= 1)
+        return _input;
+    std::vector<std::pair<int, int> > numberPairs;
+    std::vector<int> _main;
+    std::vector<int> _pend;
+
+    std::vector<int>::iterator it;
+    it = _input.begin();
+    for (; it != _input.end();)
+    {
+        if ((it + 1) == _input.end())
+            break;
+        numberPairs.push_back(std::make_pair(*it, *(it + 1)));
         it += 2;
     }
-    struggle = inputData.size() % 2 != 0 ? *(inputData.end() - 1) : -1;
-}
-void PmergeMe::getGreaterElement()
-{
-    std::vector<std::pair<int, int> >::iterator it = data.begin();
-    for (; it != data.end(); it++)
+    this->odd = (_input.size() % 2 != 0) ? _input.back() : -1;
+    std::vector<std::pair<int, int> >::iterator it_pair;
+    it_pair = numberPairs.begin();
+    for (; it_pair != numberPairs.end(); it_pair++)
     {
-        size_t tmp = it->first;
-        if (it->first < it->second)
-            it->first = it->second, it->second = tmp;
+        _main.push_back(std::max(it_pair->first, it_pair->second));
+        _pend.push_back(std::min(it_pair->first, it_pair->second));
     }
-}
-void PmergeMe::sortAscending()
-{
-    std::vector<std::pair<int, int> >::iterator it = data.begin() + 1;
-    for (; it != data.end(); it++)
+    if (this->odd != -1)
+        _pend.push_back(this->odd);
+    _main = mergeInsertion(_main);
+    std::vector<long double> jacobSeq = getJacobsthalNumbers(_pend.size());
+    std::vector<long double> indices = jacobSeq;
+
+    if (_pend.size() >= 3)
     {
-
-        size_t current = it->first;
-        std::vector<std::pair<int, int>
- >::iterator j = (it - 1);
-
-        while (j >= data.begin() && j->first > current)
+        for (size_t i = 1; i < jacobSeq.size(); i++)
         {
-            (j + 1)->first = j->first;
-            j--;
+            std::vector<long double> numbers = getNumbers(jacobSeq[i - 1], jacobSeq[i]);
+            if ((size_t)numbers.back() > _pend.size())
+                break;
+            std::vector<long double>::iterator it = std::upper_bound(indices.begin(), indices.end(), numbers[0]);
+            indices.insert(it + 1, numbers.begin(), numbers.end());
         }
-        (j + 1)->first = current;
+
+        std::vector<long double>::iterator it = std::max_element(indices.begin(), indices.end());
+        for (size_t i = *it; i < _pend.size(); i++)
+            indices.push_back(i + 1);
+    }
+    else
+    {
+        indices.clear();
+        if (_pend.size() == 1)
+            indices.push_back(1);
+        else if (_pend.size() == 2)
+        {
+            indices.push_back(1);
+            indices.push_back(2);
+        }
+    }
+    for (size_t i = 0; i < indices.size(); i++)
+    {
+        if ((size_t)indices[i] <= _pend.size())
+        {
+            int value = _pend[indices[i] - 1];
+            std::vector<int>::iterator it = std::lower_bound(_main.begin(), _main.end(), value);
+            _main.insert(it, value);
+        }
+    }
+    return _main;
+}
+
+void printVector(const std::vector<int> &vec)
+{
+    for (size_t i = 0; i < vec.size(); ++i)
+        std::cout << vec[i] << (i + 1 < vec.size() ? " " : "\n");
+}
+void printDeque(const std::deque<int> &deq)
+{
+    for (size_t i = 0; i < deq.size(); ++i)
+        std::cout << deq[i] << (i + 1 < deq.size() ? " " : "\n");
+}
+
+void PmergeMe::main(int argc, char *args[])
+{
+    if (argc == 1)
+    {
+        std::cerr << "Usage: ./PmergeMe <list of integers>" << std::endl;
+        return;
+    }
+
+    try
+    {
+
+        clock_t vectorStartTime = clock();
+        parseArgs(args);
+        std::cout << "Before: ";
+        for (size_t i = 0; i < numbers.size(); ++i)
+            std::cout << numbers[i] << " ";
+
+        std::cout << "\n";
+        std::vector<int> sortedVec = mergeInsertion(numbers);
+        clock_t vectorEndTime = clock();
+        
+
+        std::cout << "After: ";
+        for (size_t i = 0; i < sortedVec.size(); ++i)
+            std::cout << sortedVec[i] << " ";
+        std::cout << "\n";
+        
+        double timeVec = static_cast<double>(vectorEndTime - vectorStartTime) / CLOCKS_PER_SEC * 1e6;
+        std::cout << "Time to process a range of " << numbers.size()
+                  << " elements with std::vector : " << std::setprecision(5)
+                  << timeVec << " us" << std::endl;
+        clock_t dequeStartTime = clock();
+        d_parseArgs(args);
+        std::deque<int> sortedDeq = mergeInsertion(d_numbers);
+        clock_t dequeEndTime = clock();
+        double timeDeq = static_cast<double>(dequeEndTime - dequeStartTime) / CLOCKS_PER_SEC * 1e6;
+        std::cout << "Time to process a range of " << d_numbers.size()
+                  << " elements with std::deque  : " << std::setprecision(5)
+                  << timeDeq << " us" << std::endl;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "Error" << std::endl;
     }
 }
-void PmergeMe::binarySearch()
+
+/*----------------------------------
+  Begin: Merge-Insertion logic using std::deque
+----------------------------------*/
+
+std::deque<long double> d_getNumbers(int start, int end)
 {
-
-    std::vector<std::pair<int, int> >::iterator it = data.begin();
-    for (; it != data.end(); it++)
-        mainChian.push_back(it->first);
-    it = data.begin();
-    for (; it != data.end(); it++)
-        pend.push_back(it->second);
-
-    std::vector<int>::iterator iter = pend.begin();
-    for (; iter != pend.end(); iter++)
-    {
-        std::vector<int>::iterator pos = std::lower_bound(mainChian.begin(), mainChian.end(), *iter);
-        mainChian.insert(pos, *iter);
-    }
-    iter = mainChian.begin();
-    for (; iter != mainChian.end(); iter++)
-    {
-        std::cout << *iter << std::endl;
-    }
+    std::deque<long double> numbers;
+    while (--end > start)
+        numbers.push_back(end);
+    return numbers;
 }
-void PmergeMe::main()
+
+std::deque<long double> PmergeMe::d_getJacobsthalNumbers(size_t n)
 {
-    setData();
-    getGreaterElement();
-    sortAscending();
-    binarySearch();
+    std::deque<long double> jacobSeq;
+
+    if (n == 0)
+        return jacobSeq;
+    /* J(n) = J(n-1) + 2*J(n-2)*/
+    jacobSeq.push_back(0); // J(0)
+    jacobSeq.push_back(1); // J(1)
+
+    for (long double i = 2;; ++i)
+    {
+        long double next = jacobSeq[i - 1] + 2 * jacobSeq[i - 2];
+        if (next >= n)
+            break;
+        jacobSeq.push_back(next);
+    }
+    if (jacobSeq.size() > 2)
+        jacobSeq.erase(jacobSeq.begin(), jacobSeq.begin() + 2);
+
+    return jacobSeq;
+}
+std::deque<int> PmergeMe::mergeInsertion(std::deque<int> &_input)
+{
+    if (_input.size() <= 1)
+        return _input;
+    std::deque<std::pair<int, int> > numberPairs;
+    std::deque<int> _main;
+    std::deque<int> _pend;
+
+    std::deque<int>::iterator it;
+    it = _input.begin();
+    for (; it != _input.end();)
+    {
+        if ((it + 1) == _input.end())
+            break;
+        numberPairs.push_back(std::make_pair(*it, *(it + 1)));
+        it += 2;
+    }
+    this->odd = (_input.size() % 2 != 0) ? _input.back() : -1;
+    std::deque<std::pair<int, int> >::iterator it_pair;
+    it_pair = numberPairs.begin();
+    for (; it_pair != numberPairs.end(); it_pair++)
+    {
+        _main.push_back(std::max(it_pair->first, it_pair->second));
+        _pend.push_back(std::min(it_pair->first, it_pair->second));
+    }
+    if (this->odd != -1)
+        _pend.push_back(this->odd);
+    _main = mergeInsertion(_main);
+    std::deque<long double> jacobSeq = d_getJacobsthalNumbers(_pend.size());
+    std::deque<long double> indices = jacobSeq;
+
+    if (_pend.size() >= 3)
+    {
+        for (size_t i = 1; i < jacobSeq.size(); i++)
+        {
+            std::deque<long double> numbers = d_getNumbers(jacobSeq[i - 1], jacobSeq[i]);
+            if ((size_t)numbers.back() > _pend.size())
+                break;
+            std::deque<long double>::iterator it = std::upper_bound(indices.begin(), indices.end(), numbers[0]);
+            indices.insert(it + 1, numbers.begin(), numbers.end());
+        }
+
+        std::deque<long double>::iterator it = std::max_element(indices.begin(), indices.end());
+        for (size_t i = *it; i < _pend.size(); i++)
+            indices.push_back(i + 1);
+    }
+    else
+    {
+        indices.clear();
+        if (_pend.size() == 1)
+            indices.push_back(1);
+        else if (_pend.size() == 2)
+        {
+            indices.push_back(1);
+            indices.push_back(2);
+        }
+    }
+    for (size_t i = 0; i < indices.size(); i++)
+    {
+        if ((size_t)indices[i] <= _pend.size())
+        {
+            int value = _pend[indices[i] - 1];
+            std::deque<int>::iterator it = std::lower_bound(_main.begin(), _main.end(), value);
+            _main.insert(it, value);
+        }
+    }
+    return _main;
 }

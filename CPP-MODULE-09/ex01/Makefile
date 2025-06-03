@@ -1,25 +1,28 @@
-FLAGS=c++ #-fsanitize=address #-Wextra -Werror -Wall -std=c++98  
+CFLAGS= c++ -std=c++98 -Wall -Wextra -Werror 
+
+HEADERS= RPN.hpp
+
+SRCS = main.cpp RPN.cpp
 
 
-NAME=RPN
-
-SRC=main.cpp RPN.cpp 
-
-OBJ=$(SRC:.cpp=.o)
+OBJS = $(SRCS:.cpp=.o)
 
 
-all : $(NAME)
+NAME= RPN
 
-$(NAME): $(OBJ)
-	$(FLAGS) $(OBJ) -o $(NAME)
+all: $(NAME)
 
-%.o:%.cpp
-	$(FLAGS) -c $< -o $@
+$(NAME): $(OBJS)
+	c++ $(OBJS) -o $(NAME)
 
-clean :
-	$(RM) $(OBJ)
+%.o: %.cpp $(HEADERS)
+	$(CFLAGS) -c $< -o $@
 
-fclean:clean
-	$(RM) $(NAME)
 
-re:fclean all 
+clean:
+	rm -f $(OBJS)
+
+fclean: clean
+	rm -f $(NAME)
+
+re: fclean all

@@ -1,27 +1,30 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   RPN.hpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: belguabd <belguabd@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/23 17:20:11 by belguabd          #+#    #+#             */
-/*   Updated: 2024/11/24 14:56:51 by belguabd         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+#ifndef RPN_HPP
+#define RPN_HPP
 
 #include <iostream>
+#include <limits.h>
 #include <list>
 #include <stack>
+
+#include <sstream> 
+
 class RPN
 {
-public:
-    RPN(const std::string &data);
-    
-private:
-    void RPNCalculator(const std::string &data);
-    void parseInput(const std::string &data);
-    bool IsOperator(char ch);
-    std::list<std::string> list;
-    std::stack<double> st;
+    private:
+        std::stack<int>             st;
+        std::string                 rpn;
+        std::list<std::string>      numbers;
+    public:
+        void                        main(int argc, char *av[]);
+        void                        parseArgs();
+        void                        RPNCalculator();
+
+                                    RPN();
+                                    RPN(const RPN &other);
+                                    RPN &operator=(const RPN &other); 
+                                    ~RPN();
+
 };
+
+
+#endif // RPN_HPP
